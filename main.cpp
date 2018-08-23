@@ -44,17 +44,6 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    AVCodec* pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
-    if(pCodec==NULL){
-        printf("Codec not found.\n");
-        return -1;
-    }
-
-    if(avcodec_open2(pCodecCtx, pCodec,NULL)<0){
-        printf("Could not open codec.\n");
-        return -1;
-    }
-
     // Output Info-----------------------------
     printf("--------------- File Information ----------------\n");
     av_dump_format(pFormatCtx,0,filepath,0);
@@ -122,7 +111,6 @@ int main(int argc, char** argv)
 
     // Free resources - remark: should free OpenGL resources allocated in HAPAvFormatOpenGLRenderer
     SDL_Quit();
-    avcodec_close(pCodecCtx);
     avformat_close_input(&pFormatCtx);
 
     return 0;
