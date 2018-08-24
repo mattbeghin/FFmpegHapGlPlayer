@@ -1,18 +1,23 @@
+# Setup
 TEMPLATE = app
 CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
+# Turn this off to skip runtime info log
 DEFINES += LOG_RUNTIME_INFO
 
-SOURCES += main.cpp \
-    hap/hap.c \
-    HAPAvFormatOpenGLRenderer.cpp
-
+# Sources
 HEADERS += \
-    HAPAvFormatOpenGLRenderer.h \
-    hap/hap.h
+    src/HAPAvFormatOpenGLRenderer.h \
+    src/hap/hap.h
 
+SOURCES += \
+    src/HAPAvFormatOpenGLRenderer.cpp \
+    src/main.cpp \
+    src/hap/hap.c
+
+# Dependencies
 FFMPEGPATH = $$_PRO_FILE_PWD_/dependencies/ffmpeg
 INCLUDEPATH += $${FFMPEGPATH}/include
 
@@ -23,7 +28,6 @@ SDL_PATH = $$_PRO_FILE_PWD_/dependencies/SDL2
 SQUISH_PATH = $$_PRO_FILE_PWD_/dependencies/squish
 
 EXECUTABLE_PATH = $${OUT_PWD}/$${TARGET}
-#message(executable path: $${EXECUTABLE_PATH})
 
 # Copy shaders folder next to executable
 QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
@@ -79,3 +83,4 @@ windows {
 
 QMAKE_POST_LINK += echo cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
 QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
+
