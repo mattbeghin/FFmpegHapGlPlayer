@@ -115,12 +115,21 @@ HAPAvFormatOpenGLRenderer::HAPAvFormatOpenGLRenderer(AVCodecContext* codecCtx)
 // This function will decode the AVPacket into memory buffers using HapDecode
 // and will then upload the binary result as an OpenGL texture of the correct type
 // It then renders a quad into the current framebuffer using the appropriate shader program
-void HAPAvFormatOpenGLRenderer::renderFrame(AVPacket* packet) {
+void HAPAvFormatOpenGLRenderer::renderFrame(AVPacket* packet, double msTime) {
+    #ifdef LOG_RUNTIME_INFO
+        m_infoLogger.onNewFrame(msTime,packet->size);
+    #endif
+
     // Update textures
     for (int textureId = 0; textureId < m_textureCount; textureId++) {
         size_t outputBufferDecodedSize;
         unsigned int outputBufferTextureFormat;
         unsigned int res = HapDecode(packet->data,packet->size,0,HapMTDecode,nullptr,m_outputBuffers[textureId],m_outputBufferSize[textureId],&outputBufferDecodedSize,&outputBufferTextureFormat);
+
+        #ifdef LOG_RUNTIME_INFO
+            m_infoLogger.onHapDataDecoded(outputBufferDecodedSize);
+        #endif
+
         if (res != HapResult_No_Error) {
             throw std::runtime_error("Failed to decode HAP texture");
         }

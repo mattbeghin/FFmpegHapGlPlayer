@@ -3,6 +3,8 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
+DEFINES += LOG_RUNTIME_INFO
+
 SOURCES += main.cpp \
     hap/hap.c \
     HAPAvFormatOpenGLRenderer.cpp

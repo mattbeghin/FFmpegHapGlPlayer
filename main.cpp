@@ -71,42 +71,46 @@ int main(int argc, char** argv)
 
     // Loop playing back frames until user ask to close the window
     AVPacket packet;
-    int64_t currentPts = -1;
     bool shouldQuit = false;
+    double lastFrameTimeMs = SDL_GetTicks();
     while (!shouldQuit) {
         while (!shouldQuit && av_read_frame(pFormatCtx, &packet)>=0){
             if(packet.stream_index==videoindex){
                 int64_t den = pFormatCtx->streams[packet.stream_index]->time_base.den;
                 int64_t num = pFormatCtx->streams[packet.stream_index]->time_base.num;
-                int64_t newPacketPts = av_rescale(packet.pts, AV_TIME_BASE * num, den);
+                int64_t frameDuration = av_rescale(packet.duration, AV_TIME_BASE * num, den);
 
                 // Display new frame in openGL backbuffer
-                hapAvFormatRenderer.renderFrame(&packet);
+                hapAvFormatRenderer.renderFrame(&packet,lastFrameTimeMs);
 
                 // Keep showing previous frame depending on movie FPS (see frameDurationMs below)
-                if (currentPts!=-1) {
-                    int frameDurationMs = (newPacketPts - currentPts) / 1000;
+                double frameDurationMs = frameDuration / 1000.0;
+                double frameEndTimeMs = lastFrameTimeMs + frameDurationMs;
 
-                    // Delay: remark we keep processing UI events, this should be written differently
-                    // but this example aims at keeping the code as easy to read as possible, so keep it simple
-                    SDL_Event event;
-                    while(!shouldQuit && SDL_PollEvent(&event)) {
-                        if (event.type == SDL_QUIT) {
-                            shouldQuit = true;
-                        }
+                // Delay: remark we keep processing UI events, this is dirty
+                // but this example aims at keeping the code as easy to read
+                // as possible, so keep it simple
+                SDL_Event event;
+                while(!shouldQuit && SDL_PollEvent(&event)) {
+                    if (event.type == SDL_QUIT) {
+                        shouldQuit = true;
                     }
-                    SDL_Delay(frameDurationMs);
                 }
-                currentPts = newPacketPts;
+
+                // Sleep until we reach frame end time
+                while (SDL_GetTicks() < frameEndTimeMs) {
+                    SDL_Delay(1);
+                }
+                lastFrameTimeMs = frameEndTimeMs;
 
                 // Now swap OpenGL Backbuffer to front
                 SDL_GL_SwapWindow(window);
             }
+            av_free_packet(&packet);
         }
 
         // Loop - seek back to first frame
         av_seek_frame(pFormatCtx,-1,0,AVSEEK_FLAG_BACKWARD);
-        currentPts=-1;
     }
 
     // Free resources - remark: should free OpenGL resources allocated in HAPAvFormatOpenGLRenderer

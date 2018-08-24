@@ -20,7 +20,7 @@ extern "C"
 class HAPAvFormatOpenGLRenderer {
 public:
     HAPAvFormatOpenGLRenderer(AVCodecContext* codecCtx);
-    void renderFrame(AVPacket* packet);
+    void renderFrame(AVPacket* packet, double msTime);
 
 private:
     int m_textureCount;
@@ -39,6 +39,36 @@ private:
     // It will depend on HAP encoding (Hap, Hap Alpha, HapQ, HapQ+Alpha)
     void createShaderProgram(unsigned int codecTag);
     GLuint m_shaderProgram;
+
+    #ifdef LOG_RUNTIME_INFO
+        class RuntimeInfoLogger {
+        public:
+            void onNewFrame(double msTime, int packetLength) {
+                if (m_startTime==0) {
+                    // Init
+                    m_startTime=msTime;
+                    m_lastLogTime=msTime;
+                }
+                // Log info each 1 second
+                if (msTime > m_lastLogTime+1000) {
+                    m_lastLogTime = msTime;
+                    printf("Decompressed Frames: %ld, Average Input Bitrate: %lf, Average Output Birate: %lf, Average framerate: %lf\n",m_frameCount,double(m_totalBytesRead)/m_frameCount,double(m_totalBytesDecompressed)/m_frameCount,m_frameCount/double((msTime-m_startTime)/1000));
+                }
+                m_frameCount++;
+                m_totalBytesRead += packetLength;
+            }
+            void onHapDataDecoded(size_t outputBufferDecodedSize) {
+                m_totalBytesDecompressed += outputBufferDecodedSize;
+            }
+        private:
+            size_t m_startTime=0;
+            size_t m_lastLogTime=0;
+            size_t m_frameCount=0;
+            size_t m_totalBytesRead=0;
+            size_t m_totalBytesDecompressed=0;
+        };
+        RuntimeInfoLogger m_infoLogger;
+    #endif
 };
 
 #endif // HAPAVFORMATOPENGLRENDERER_H
