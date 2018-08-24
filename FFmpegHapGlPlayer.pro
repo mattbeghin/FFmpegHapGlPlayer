@@ -29,20 +29,24 @@ QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
 mac {
     # FFMPEG
     FFMPEGLIBPATH = $${FFMPEGPATH}/lib/Mac/x86_64
-    LIBS += $${FFMPEGLIBPATH}/libavcodec.dylib
-    LIBS += $${FFMPEGLIBPATH}/libavdevice.dylib
-    LIBS += $${FFMPEGLIBPATH}/libavfilter.dylib
-    LIBS += $${FFMPEGLIBPATH}/libavformat.dylib
-    LIBS += $${FFMPEGLIBPATH}/libavutil.dylib
-    LIBS += $${FFMPEGLIBPATH}/libswresample.dylib
-    LIBS += $${FFMPEGLIBPATH}/libswscale.dylib
-    QMAKE_POST_LINK += install_name_tool -change /Developer/G3Tools/ffmpeg-2.8.7-build-64/lib/libavcodec.56.dylib $${FFMPEGLIBPATH}/libavcodec.dylib $${EXECUTABLE_PATH};
-    QMAKE_POST_LINK += install_name_tool -change /Developer/G3Tools/ffmpeg-2.8.7-build-64/lib/libavdevice.56.dylib $${FFMPEGLIBPATH}/libavdevice.dylib $${EXECUTABLE_PATH};
-    QMAKE_POST_LINK += install_name_tool -change /Developer/G3Tools/ffmpeg-2.8.7-build-64/lib/libavfilter.5.dylib $${FFMPEGLIBPATH}/libavfilter.dylib $${EXECUTABLE_PATH};
-    QMAKE_POST_LINK += install_name_tool -change /Developer/G3Tools/ffmpeg-2.8.7-build-64/lib/libavformat.56.dylib $${FFMPEGLIBPATH}/libavformat.dylib $${EXECUTABLE_PATH};
-    QMAKE_POST_LINK += install_name_tool -change /Developer/G3Tools/ffmpeg-2.8.7-build-64/lib/libavutil.54.dylib $${FFMPEGLIBPATH}/libavutil.dylib $${EXECUTABLE_PATH};
-    QMAKE_POST_LINK += install_name_tool -change /Developer/G3Tools/ffmpeg-2.8.7-build-64/lib/libswresample.1.dylib $${FFMPEGLIBPATH}/libswresample.dylib $${EXECUTABLE_PATH};
-    QMAKE_POST_LINK += install_name_tool -change /Developer/G3Tools/ffmpeg-2.8.7-build-64/lib/libswscale.3.dylib $${FFMPEGLIBPATH}/libswscale.dylib $${EXECUTABLE_PATH};
+    LIBS += $${FFMPEGLIBPATH}/libavcodec.a
+    LIBS += $${FFMPEGLIBPATH}/libavdevice.a
+    LIBS += $${FFMPEGLIBPATH}/libavfilter.a
+    LIBS += $${FFMPEGLIBPATH}/libavformat.a
+    LIBS += $${FFMPEGLIBPATH}/libavutil.a
+    LIBS += $${FFMPEGLIBPATH}/libswresample.a
+    LIBS += $${FFMPEGLIBPATH}/libswscale.a
+    LIBS += -framework VideoDecodeAcceleration
+    LIBS += -framework AudioToolbox
+    LIBS += -framework CoreFoundation
+    LIBS += -framework CoreVideo
+    LIBS += -framework CoreMedia
+    LIBS += -framework VideoToolbox
+    LIBS += -framework Security
+    LIBS += -lz
+    LIBS += -lbz2
+    LIBS += /usr/lib/libiconv.dylib
+    LIBS += /usr/lib/liblzma.dylib
 
     # SDL
     SDL_LIB_PATH = $${SDL_PATH}/lib/Mac/
