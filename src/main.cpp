@@ -1,4 +1,5 @@
 #include <iostream>
+#include "glad/glad.h"
 #include "HAPAvFormatOpenGLRenderer.h"
 #include <SDL.h>
 
@@ -65,6 +66,9 @@ int main(int argc, char** argv)
         return -1;
     }
     SDL_GL_CreateContext(window);
+
+    // Load OpenGL API via glad - useless on macOS - seems needed on windows
+    gladLoadGLLoader(SDL_GL_GetProcAddress);
 
     // Instanciate HAPAvFormatOpenGLRenderer
     HAPAvFormatOpenGLRenderer hapAvFormatRenderer(pCodecCtx);

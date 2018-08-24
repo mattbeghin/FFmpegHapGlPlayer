@@ -10,22 +10,14 @@ DEFINES += LOG_RUNTIME_INFO
 # Sources
 HEADERS += \
     src/HAPAvFormatOpenGLRenderer.h \
-    src/hap/hap.h
+    src/hap/hap.h \
+    src/glad/glad.h
 
 SOURCES += \
     src/HAPAvFormatOpenGLRenderer.cpp \
     src/main.cpp \
-    src/hap/hap.c
-
-# Dependencies
-FFMPEGPATH = $$_PRO_FILE_PWD_/dependencies/ffmpeg
-INCLUDEPATH += $${FFMPEGPATH}/include
-
-SNAPPY_PATH = $$_PRO_FILE_PWD_/dependencies/snappy
-INCLUDEPATH += $${SNAPPY_PATH}/snappy-source
-
-SDL_PATH = $$_PRO_FILE_PWD_/dependencies/SDL2
-SQUISH_PATH = $$_PRO_FILE_PWD_/dependencies/squish
+    src/hap/hap.c \
+    src/glad/glad.c
 
 EXECUTABLE_PATH = $${OUT_PWD}/$${TARGET}
 
@@ -33,8 +25,17 @@ EXECUTABLE_PATH = $${OUT_PWD}/$${TARGET}
 QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
 
 mac {
+    # Dependencies pathes
+    FFMPEGPATH =   $$_PRO_FILE_PWD_/dependencies/Mac/x86_64/ffmpeg
+    INCLUDEPATH += $${FFMPEGPATH}/include
+
+    SNAPPY_PATH =  $$_PRO_FILE_PWD_/dependencies/Mac/x86_64/snappy
+    INCLUDEPATH += $${SNAPPY_PATH}/include
+
+    SDL_PATH =     $$_PRO_FILE_PWD_/dependencies/Mac/x86_64/SDL2
+
     # FFMPEG
-    FFMPEGLIBPATH = $${FFMPEGPATH}/lib/Mac/x86_64
+    FFMPEGLIBPATH = $${FFMPEGPATH}/lib
     LIBS += $${FFMPEGLIBPATH}/libavcodec.a
     LIBS += $${FFMPEGLIBPATH}/libavdevice.a
     LIBS += $${FFMPEGLIBPATH}/libavfilter.a
@@ -55,14 +56,14 @@ mac {
     LIBS += /usr/lib/liblzma.dylib
 
     # SDL
-    SDL_LIB_PATH = $${SDL_PATH}/lib/Mac/
+    SDL_LIB_PATH = $${SDL_PATH}/lib/
     INCLUDEPATH += $${SDL_LIB_PATH}/SDL2.framework/Headers
     QMAKE_LFLAGS += -F$${SDL_LIB_PATH}
     LIBS += -framework SDL2
     QMAKE_POST_LINK += install_name_tool -change @rpath/SDL2.framework/Versions/A/SDL2 $${SDL_LIB_PATH}/SDL2.framework/Versions/A/SDL2 $${EXECUTABLE_PATH};
 
     # Snappy
-    SNAPPY_LIB_PATH = $${SNAPPY_PATH}/lib/Mac/x86_64
+    SNAPPY_LIB_PATH = $${SNAPPY_PATH}/lib
     LIBS += $${SNAPPY_LIB_PATH}/libsnappy.dylib
     QMAKE_POST_LINK += install_name_tool -change @rpath/libsnappy.dylib $${SNAPPY_LIB_PATH}/libsnappy.dylib $${EXECUTABLE_PATH};
 
@@ -71,11 +72,29 @@ mac {
 }
 
 windows {
+    # Dependencies pathes
+    FFMPEGPATH =   $$_PRO_FILE_PWD_/dependencies/Windows/x86_64/ffmpeg
+    INCLUDEPATH += $${FFMPEGPATH}/include
+
+    SNAPPY_PATH =  $$_PRO_FILE_PWD_/dependencies/Windows/x86_64/snappy
+    INCLUDEPATH += $${SNAPPY_PATH}/include
+
+    SDL_PATH =     $$_PRO_FILE_PWD_/dependencies/Windows/x86_64/SDL2
+
     # FFMPEG
+    FFMPEGLIBPATH = $${FFMPEGPATH}/lib
+    LIBS += $${FFMPEGLIBPATH}/avcodec-lav.lib
+    LIBS += $${FFMPEGLIBPATH}/avformat-lav.lib
+    LIBS += $${FFMPEGLIBPATH}/avutil-lav.lib
 
     # SDL
+    SDL_LIB_PATH = $${SDL_PATH}/lib/
+    INCLUDEPATH += $${SDL_LIB_PATH}/include
+    LIBS += $${SDL_LIB_PATH}/SDL2.lib $${SDL_LIB_PATH}/SDL2main.lib
 
     # Snappy
+    SNAPPY_LIB_PATH = $${SNAPPY_PATH}/lib
+    LIBS += $${SNAPPY_LIB_PATH}/snappy.lib
 
     # OpenGL
     LIBS += -lopengl32
