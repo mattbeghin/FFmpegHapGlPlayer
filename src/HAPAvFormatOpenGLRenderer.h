@@ -52,7 +52,8 @@ private:
                 // Log info each 1 second
                 if (msTime > m_lastLogTime+1000) {
                     m_lastLogTime = msTime;
-                    printf("Decompressed Frames: %ld, Average Input Bitrate: %lf, Average Output Birate: %lf, Average framerate: %lf\n",m_frameCount,double(m_totalBytesRead)/m_frameCount,double(m_totalBytesDecompressed)/m_frameCount,m_frameCount/double((msTime-m_startTime)/1000));
+                    double elapsedTime = msTime - m_startTime;
+                    printf("Decompressed Frames: %ld, Average Input Bitrate: %lf, Average Output Birate: %lf, Average framerate: %lf\n",m_frameCount,m_totalBytesRead*8/elapsedTime,m_totalBytesDecompressed*8/elapsedTime,m_frameCount/double((msTime-m_startTime)/1000));
                 }
                 m_frameCount++;
                 m_totalBytesRead += packetLength;
