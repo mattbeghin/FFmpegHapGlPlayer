@@ -1,7 +1,11 @@
 #include <iostream>
 #include "glad/glad.h"
 #include "HAPAvFormatOpenGLRenderer.h"
-#include <SDL.h>
+#if !defined( Linux )
+    #include <SDL.h>
+#else
+    #include <SDL2/SDL.h>
+#endif
 
 using namespace std;
 
@@ -15,43 +19,45 @@ int main(int argc, char** argv)
     char* filepath = argv[1];
 
     // Initialize AV Codec / Format
-    av_register_all();
+    #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(58, 9, 100)
+        av_register_all();
+    #endif
     avformat_network_init();
     AVFormatContext* pFormatCtx = avformat_alloc_context();
 
     // Open file
     if(avformat_open_input(&pFormatCtx,filepath,NULL,NULL)!=0){
-        printf("Couldn't open input stream.\n");
+        fprintf(stderr, "Couldn't open input stream.\n");
         return -1;
     }
     if(avformat_find_stream_info(pFormatCtx,NULL)<0){
-        printf("Couldn't find stream information.\n");
+        fprintf(stderr, "Couldn't find stream information.\n");
         return -1;
     }
     int videoindex=-1;
     for(unsigned int i=0; i<pFormatCtx->nb_streams; i++)
-        if(pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO){
+        if(pFormatCtx->streams[i]->codecpar->codec_type==AVMEDIA_TYPE_VIDEO){
             videoindex=i;
             break;
         }
     if(videoindex==-1){
-        printf("Didn't find a video stream.\n");
+        fprintf(stderr, "Didn't find a video stream.\n");
         return -1;
     }
 
-    AVCodecContext* pCodecCtx=pFormatCtx->streams[videoindex]->codec;
-    if (pCodecCtx->codec_id != AV_CODEC_ID_HAP) {
-        printf("This app only playbacks HAP movies.\n");
+    AVCodecParameters* pCodecParams=pFormatCtx->streams[videoindex]->codecpar;
+    if (pCodecParams->codec_id != AV_CODEC_ID_HAP) {
+        fprintf(stderr, "This app only playbacks HAP movies.\n");
         return -1;
     }
 
     // Output Info-----------------------------
-    printf("--------------- File Information ----------------\n");
+    fprintf(stderr, "--------------- File Information ----------------\n");
     av_dump_format(pFormatCtx,0,filepath,0);
 
     // Initialize SDL And create window
     if(SDL_Init(SDL_INIT_VIDEO)) {
-        printf( "Could not initialize SDL - %s\n", SDL_GetError());
+        fprintf(stderr, "Could not initialize SDL - %s\n", SDL_GetError());
         return -1;
     }
 
@@ -59,10 +65,10 @@ int main(int argc, char** argv)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_Window *window = SDL_CreateWindow("Simplest ffmpeg player's Window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        pCodecCtx->width, pCodecCtx->height,
+        pCodecParams->width, pCodecParams->height,
         SDL_WINDOW_OPENGL);
     if(!window) {
-        printf("SDL: could not create window - exiting:%s\n",SDL_GetError());
+        fprintf(stderr, "SDL: could not create window - exiting:%s\n",SDL_GetError());
         return -1;
     }
     SDL_GL_CreateContext(window);
@@ -71,7 +77,7 @@ int main(int argc, char** argv)
     gladLoadGLLoader(SDL_GL_GetProcAddress);
 
     // Instanciate HAPAvFormatOpenGLRenderer
-    HAPAvFormatOpenGLRenderer hapAvFormatRenderer(pCodecCtx);
+    HAPAvFormatOpenGLRenderer hapAvFormatRenderer(pCodecParams);
 
     // Loop playing back frames until user ask to close the window
     AVPacket packet;
@@ -110,7 +116,7 @@ int main(int argc, char** argv)
                 // Now swap OpenGL Backbuffer to front
                 SDL_GL_SwapWindow(window);
             }
-            av_free_packet(&packet);
+            av_packet_unref(&packet);
         }
 
         // Loop - seek back to first frame

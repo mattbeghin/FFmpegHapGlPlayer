@@ -8,6 +8,7 @@
 #elif defined(__WIN32__)
     #include <gl/GL.h>
 #else // Linux
+    #include <glad/glad.h>
     #include <GL/gl.h>
 #endif
 
@@ -19,7 +20,7 @@ extern "C"
 
 class HAPAvFormatOpenGLRenderer {
 public:
-    HAPAvFormatOpenGLRenderer(AVCodecContext* codecCtx);
+    HAPAvFormatOpenGLRenderer(AVCodecParameters* codecParams);
     void renderFrame(AVPacket* packet, double msTime);
 
 private:

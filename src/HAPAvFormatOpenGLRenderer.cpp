@@ -5,14 +5,14 @@
 
 
 // Multi-threaded decode function is platform specific
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined( Linux )
     #include <dispatch/dispatch.h>
 #else
     #include <ppl.h>
 #endif
 void HapMTDecode(HapDecodeWorkFunction function, void *info, unsigned int count, void * /*info*/)
 {
-    #if defined(__APPLE__)
+    #if defined(__APPLE__) || defined( Linux )
         dispatch_apply(count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t index) {
             function(info, (unsigned int)index);
         });
@@ -27,20 +27,20 @@ void HapMTDecode(HapDecodeWorkFunction function, void *info, unsigned int count,
 // Initialization of HAPAvFormatOpenGLRenderer is done in constructor, including
 // creating opengl textures, which mean we should already be in the GL context
 // we'll use when drawing frames
-HAPAvFormatOpenGLRenderer::HAPAvFormatOpenGLRenderer(AVCodecContext* codecCtx)
+HAPAvFormatOpenGLRenderer::HAPAvFormatOpenGLRenderer(AVCodecParameters* codecParams)
 {
     #define FFALIGN(x, a) (((x)+(a)-1)&~((a)-1))
     #define TEXTURE_BLOCK_W 4
     #define TEXTURE_BLOCK_H 4
 
-    m_textureWidth = codecCtx->width;
-    m_textureHeight = codecCtx->height;
+    m_textureWidth = codecParams->width;
+    m_textureHeight = codecParams->height;
     // Encoded texture is 4 bytes aligned
     m_codedWidth = FFALIGN(m_textureWidth,TEXTURE_BLOCK_W);
     m_codedHeight = FFALIGN(m_textureHeight,TEXTURE_BLOCK_H);
     m_textureCount = 1;
     unsigned int outputBufferTextureFormats[2];
-    switch (codecCtx->codec_tag) {
+    switch (codecParams->codec_tag) {
     case MKTAG('H','a','p','1'): // Hap
         outputBufferTextureFormats[0] = HapTextureFormat_RGB_DXT1;
         m_glInternalFormat[0] = HapTextureFormat_RGB_DXT1;
@@ -109,7 +109,7 @@ HAPAvFormatOpenGLRenderer::HAPAvFormatOpenGLRenderer(AVCodecContext* codecCtx)
         glTexImage2D(GL_TEXTURE_2D, 0, m_glInternalFormat[textureId], m_codedWidth, m_codedHeight, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     }
 
-    createShaderProgram(codecCtx->codec_tag);
+    createShaderProgram(codecParams->codec_tag);
 }
 
 // This function will decode the AVPacket into memory buffers using HapDecode
