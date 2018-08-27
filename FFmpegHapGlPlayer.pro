@@ -100,6 +100,57 @@ windows {
     LIBS += -lopengl32
 }
 
+linux {
+    # seems to be broken
+    CC = clang
+    CXX = clang
+    CFLAGS += -fblocks
+    CXXFLAGS += -fblocks
+
+    # important flag ;-)
+    DEFINES += Linux
+
+    # Dependencies pathes
+    # no change needed (works for me ...)
+
+    # Linux build is broken.
+    # Since the changes above don't work, you'll need to manually tweak the Makefile at the end
+    #
+    # clang IS mandatory to build HAPAvFormatOpenGLRenderer.cpp
+
+    # replace CC = gcc with the line : CC = clang
+    # replace CXX = g++ with the line : CXX = clang
+    # replace the line CFLAGS = -m64 -pipe     with the line : CFLAGS = -m64 -fblock -pipe
+    # replace the line CXXFLAGS = -m64 -pipe   with the line : CFLAGS = -m64 -fblock -pipe
+
+    # do not modify the LIBRARY_PATH. Should work without change anything
+
+    # OpenGL
+    LIBS += -lGL
+
+    # libpthread :
+    LIBS +=  -lpthread
+
+    # libdl :
+    LIBS +=  -ldl
+
+    # libsnappy
+    SNAPPY_LIB_PATH = $${SNAPPY_PATH}/lib
+    LIBS += -lsnappy
+
+    # libdispatch
+    LIBS += -ldispatch
+
+    # BlocksRuntime
+    LIBS += -lBlocksRuntime
+
+    # ffmpeg :
+    LIBS +=  `pkg-config --cflags --libs libavformat libavcodec libavutil`
+
+    # SDL2 :
+    LIBS += `sdl2-config --cflags --libs`
+}
+
 QMAKE_POST_LINK += echo cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
 QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
 
