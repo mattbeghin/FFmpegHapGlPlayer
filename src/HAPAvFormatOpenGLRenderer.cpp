@@ -122,9 +122,9 @@ void HAPAvFormatOpenGLRenderer::renderFrame(AVPacket* packet, double msTime) {
 
     // Update textures
     for (int textureId = 0; textureId < m_textureCount; textureId++) {
-        size_t outputBufferDecodedSize;
+        unsigned long outputBufferDecodedSize;
         unsigned int outputBufferTextureFormat;
-        unsigned int res = HapDecode(packet->data,packet->size,0,HapMTDecode,nullptr,m_outputBuffers[textureId],m_outputBufferSize[textureId],&outputBufferDecodedSize,&outputBufferTextureFormat);
+        unsigned int res = HapDecode(packet->data,packet->size,0,HapMTDecode,nullptr,m_outputBuffers[textureId],static_cast<unsigned long>(m_outputBufferSize[textureId]),&outputBufferDecodedSize,&outputBufferTextureFormat);
 
         #ifdef LOG_RUNTIME_INFO
             m_infoLogger.onHapDataDecoded(outputBufferDecodedSize);
@@ -148,7 +148,7 @@ void HAPAvFormatOpenGLRenderer::renderFrame(AVPacket* packet, double msTime) {
             m_codedWidth,
             m_codedHeight,
             m_glInternalFormat[textureId],
-            m_outputBufferSize[textureId],
+            static_cast<GLsizei>(m_outputBufferSize[textureId]),
             m_outputBuffers[textureId]);
     }
 
@@ -179,8 +179,16 @@ void HAPAvFormatOpenGLRenderer::renderFrame(AVPacket* packet, double msTime) {
 // Compiles a shader program given its type and its path relative to executable
 GLuint compileShaderProgram(GLenum shaderType, std::string relativeFilePath)
 {
-
-    std::ifstream t(relativeFilePath);
+    #if defined(__WIN32__) || defined(WIN32) || defined(_WIN32)
+        char exePath[4096];
+        GetModuleFileNameA( NULL, exePath, 4096 );
+        // Remove file name
+        while (strlen(exePath)>0 && exePath[strlen(exePath)-1]!='\\') exePath[strlen(exePath)-1] = 0;
+        assert(strlen(exePath)>0);
+        std::ifstream t(exePath + relativeFilePath);
+    #else
+        std::ifstream t(relativeFilePath);
+    #endif
     std::stringstream buffer;
     buffer << t.rdbuf();
     std::string fileContent = buffer.str();
@@ -192,7 +200,7 @@ GLuint compileShaderProgram(GLenum shaderType, std::string relativeFilePath)
     // Verify compilation
     GLint shaderCompiled = 0;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &shaderCompiled);
-    if (shaderCompiled == 0) {
+    if (shaderCompiled != GL_TRUE) {
         throw std::runtime_error("Error compiling vertex shader");
     }
 
@@ -238,8 +246,13 @@ void HAPAvFormatOpenGLRenderer::createShaderProgram(unsigned int codecTag)
     // Verify link
     GLint programLinked = 0;
     glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &programLinked);
-    if(programLinked == 0 ) {
-        throw std::runtime_error("Error compiling fragment shader");
+    if(programLinked != GL_TRUE ) {
+        GLint errorSize = 0;
+        glGetProgramiv(m_shaderProgram, GL_INFO_LOG_LENGTH, &errorSize);
+        std::string errorStr; errorStr.resize(errorSize + 1);
+        glGetProgramInfoLog(m_shaderProgram, errorSize, &errorSize, &errorStr[0]);
+        errorStr[errorSize] = '\0';
+        throw std::runtime_error("Error compiling fragment shader:\n" + errorStr);
     } else {
         glUseProgram(m_shaderProgram);
         GLint samplerLoc = -1;

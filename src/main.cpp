@@ -2,7 +2,7 @@
 #include "glad/glad.h"
 #include "HAPAvFormatOpenGLRenderer.h"
 #if !defined( Linux )
-    #include <SDL.h>
+    #include "SDL.h"
 #else
     #include <SDL2/SDL.h>
 #endif

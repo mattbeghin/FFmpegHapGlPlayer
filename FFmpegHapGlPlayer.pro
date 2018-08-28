@@ -21,9 +21,6 @@ SOURCES += \
 
 EXECUTABLE_PATH = $${OUT_PWD}/$${TARGET}
 
-# Copy shaders folder next to executable
-QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
-
 mac {
     # Dependencies pathes
     FFMPEGPATH =   $$_PRO_FILE_PWD_/dependencies/Mac/x86_64/ffmpeg
@@ -88,13 +85,17 @@ windows {
     LIBS += $${FFMPEGLIBPATH}/avutil-lav.lib
 
     # SDL
-    SDL_LIB_PATH = $${SDL_PATH}/lib/
-    INCLUDEPATH += $${SDL_LIB_PATH}/include
+    INCLUDEPATH += $${SDL_PATH}/include
+    SDL_LIB_PATH = $${SDL_PATH}/lib
     LIBS += $${SDL_LIB_PATH}/SDL2.lib $${SDL_LIB_PATH}/SDL2main.lib
 
     # Snappy
     SNAPPY_LIB_PATH = $${SNAPPY_PATH}/lib
-    LIBS += $${SNAPPY_LIB_PATH}/snappy.lib
+    CONFIG(release, debug|release) {
+        LIBS += $${SNAPPY_LIB_PATH}/snappy.lib
+    } else {
+        LIBS += $${SNAPPY_LIB_PATH}/snappyd.lib
+    }
 
     # OpenGL
     LIBS += -lopengl32
@@ -151,8 +152,13 @@ linux {
     LIBS += `sdl2-config --cflags --libs`
 }
 
+# Copy shaders folder next to executable (if the executable is not at project root)
 !equals(_PRO_FILE_PWD_,OUT_PWD) {
-    QMAKE_POST_LINK += echo cp -R $${_PRO_FILE_PWD_}/shaders $${OUT_PWD};
-    QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
+    windows {
+        QMAKE_POST_LINK += cmd /c XCOPY /E $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
+    }
+    !windows {
+        QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
+    }
 }
 

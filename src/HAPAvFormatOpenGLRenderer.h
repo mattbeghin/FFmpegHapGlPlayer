@@ -5,10 +5,11 @@
 
 #if defined(__APPLE__)
     #include <OpenGL/gl.h>
-#elif defined(__WIN32__)
+#elif defined(__WIN32__) || defined(WIN32) || defined(_WIN32)
+    #include "glad/glad.h"
     #include <gl/GL.h>
 #else // Linux
-    #include <glad/glad.h>
+    #include "glad/glad.h"
     #include <GL/gl.h>
 #endif
 
@@ -54,7 +55,7 @@ private:
                 if (msTime > m_lastLogTime+1000) {
                     m_lastLogTime = msTime;
                     double elapsedTime = msTime - m_startTime;
-                    printf("Decompressed Frames: %ld, Average Input Bitrate: %lf, Average Output Birate: %lf, Average framerate: %lf\n",m_frameCount,m_totalBytesRead*8/elapsedTime,m_totalBytesDecompressed*8/elapsedTime,m_frameCount/double((msTime-m_startTime)/1000));
+                    printf("Decompressed Frames: %lu, Average Input Bitrate: %lf, Average Output Birate: %lf, Average framerate: %lf\n",static_cast<unsigned long>(m_frameCount),m_totalBytesRead*8/elapsedTime,m_totalBytesDecompressed*8/elapsedTime,m_frameCount/double((msTime-m_startTime)/1000));
                 }
                 m_frameCount++;
                 m_totalBytesRead += packetLength;
@@ -63,8 +64,8 @@ private:
                 m_totalBytesDecompressed += outputBufferDecodedSize;
             }
         private:
-            size_t m_startTime=0;
-            size_t m_lastLogTime=0;
+            double m_startTime=0;
+            double m_lastLogTime=0;
             size_t m_frameCount=0;
             size_t m_totalBytesRead=0;
             size_t m_totalBytesDecompressed=0;
