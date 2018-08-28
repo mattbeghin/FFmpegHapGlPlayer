@@ -151,6 +151,8 @@ linux {
     LIBS += `sdl2-config --cflags --libs`
 }
 
-QMAKE_POST_LINK += echo cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
-QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
+!equals(_PRO_FILE_PWD_,OUT_PWD) {
+    QMAKE_POST_LINK += echo cp -R $${_PRO_FILE_PWD_}/shaders $${OUT_PWD};
+    QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
+}
 
