@@ -155,7 +155,7 @@ linux {
 # Copy shaders folder next to executable (if the executable is not at project root)
 !equals(_PRO_FILE_PWD_,OUT_PWD) {
     windows {
-        QMAKE_POST_LINK += cmd /c XCOPY /E $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
+        QMAKE_POST_LINK += XCOPY /E "$$_PRO_FILE_PWD_/shaders" "$${OUT_PWD}";
     }
     !windows {
         QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
