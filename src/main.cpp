@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 
     // Open file
     if(avformat_open_input(&pFormatCtx,filepath,NULL,NULL)!=0){
-        fprintf(stderr, "Couldn't open input stream.\n");
+        fprintf(stderr, "Couldn't open input stream: %s.\n", filepath);
         return -1;
     }
     if(avformat_find_stream_info(pFormatCtx,NULL)<0){

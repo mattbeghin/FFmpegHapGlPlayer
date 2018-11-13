@@ -35,7 +35,6 @@ mac {
     FFMPEGLIBPATH = $${FFMPEGPATH}/lib
     LIBS += $${FFMPEGLIBPATH}/libavcodec.a
     LIBS += $${FFMPEGLIBPATH}/libavdevice.a
-    LIBS += $${FFMPEGLIBPATH}/libavfilter.a
     LIBS += $${FFMPEGLIBPATH}/libavformat.a
     LIBS += $${FFMPEGLIBPATH}/libavutil.a
     LIBS += $${FFMPEGLIBPATH}/libswresample.a
@@ -161,4 +160,10 @@ linux {
         QMAKE_POST_LINK += cp -R $$_PRO_FILE_PWD_/shaders $${OUT_PWD};
     }
 }
+
+DISTFILES += \
+    shaders/Default.frag \
+    shaders/ScaledCoCgYPlusAToRGBA.frag \
+    shaders/ScaledCoCgYToRGBA.frag \
+    shaders/Default.vert
 

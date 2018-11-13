@@ -124,7 +124,7 @@ void HAPAvFormatOpenGLRenderer::renderFrame(AVPacket* packet, double msTime) {
     for (int textureId = 0; textureId < m_textureCount; textureId++) {
         unsigned long outputBufferDecodedSize;
         unsigned int outputBufferTextureFormat;
-        unsigned int res = HapDecode(packet->data,packet->size,0,HapMTDecode,nullptr,m_outputBuffers[textureId],static_cast<unsigned long>(m_outputBufferSize[textureId]),&outputBufferDecodedSize,&outputBufferTextureFormat);
+        unsigned int res = HapDecode(packet->data,packet->size,textureId,HapMTDecode,nullptr,m_outputBuffers[textureId],static_cast<unsigned long>(m_outputBufferSize[textureId]),&outputBufferDecodedSize,&outputBufferTextureFormat);
 
         #ifdef LOG_RUNTIME_INFO
             m_infoLogger.onHapDataDecoded(outputBufferDecodedSize);
@@ -155,9 +155,13 @@ void HAPAvFormatOpenGLRenderer::renderFrame(AVPacket* packet, double msTime) {
     // Render with old school OpenGL 2 code to avoid adding complexity here
     // The objective is just to understand the process
     // (in a real application don't use glBegin/glEnd, use VBOs)
-    glClearColor(0,0,0,0);
+    glClearColor(1,0,0,0);
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
+
+    // Enable alpha channel in case of Hap Alpha
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -259,6 +263,10 @@ void HAPAvFormatOpenGLRenderer::createShaderProgram(unsigned int codecTag)
         samplerLoc = glGetUniformLocation(m_shaderProgram, "cocgsy_src");
         if (samplerLoc >= 0) {
             glUniform1i(samplerLoc,0);
+        }
+        samplerLoc = glGetUniformLocation(m_shaderProgram, "alpha_src");
+        if (samplerLoc >= 0) {
+            glUniform1i(samplerLoc,1);
         }
         glUseProgram(0);
     }
