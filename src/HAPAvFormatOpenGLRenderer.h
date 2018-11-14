@@ -35,7 +35,7 @@ private:
 
     // OpenGL Textures information
     GLuint m_outputTextures[2];
-    GLuint m_glInternalFormat[2];
+    GLuint m_glInputFormat[2];
 
     // Shader Program to use for rendering
     // It will depend on HAP encoding (Hap, Hap Alpha, HapQ, HapQ+Alpha)

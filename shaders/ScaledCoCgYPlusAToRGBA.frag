@@ -33,7 +33,7 @@ const vec4 offsets = vec4(-0.50196078431373, -0.50196078431373, 0.0, 0.0);
 void main()
 {
     vec4 CoCgSY = texture2D(cocgsy_src, gl_TexCoord[0].xy);
-    vec4 theAlpha = texture2D(alpha_src, gl_TexCoord[0].xy);
+    float theAlpha = texture2D(alpha_src, gl_TexCoord[0].xy).r;
     
     CoCgSY += offsets;
     
@@ -43,7 +43,7 @@ void main()
     float Cg = CoCgSY.y / scale;
     float Y = CoCgSY.w;
     
-    vec4 rgba = vec4(Y + Co - Cg, Y + Cg, Y - Co - Cg, theAlpha.r);
+    vec4 rgba = vec4(Y + Co - Cg, Y + Cg, Y - Co - Cg, theAlpha);
     
     gl_FragColor = rgba;
 }

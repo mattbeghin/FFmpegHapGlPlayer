@@ -43,26 +43,26 @@ HAPAvFormatOpenGLRenderer::HAPAvFormatOpenGLRenderer(AVCodecParameters* codecPar
     switch (codecParams->codec_tag) {
     case MKTAG('H','a','p','1'): // Hap
         outputBufferTextureFormats[0] = HapTextureFormat_RGB_DXT1;
-        m_glInternalFormat[0] = HapTextureFormat_RGB_DXT1;
+        m_glInputFormat[0] = HapTextureFormat_RGB_DXT1;
         break;
     case MKTAG('H','a','p','5'): // Hap Alpha
         outputBufferTextureFormats[0] = HapTextureFormat_RGBA_DXT5;
-        m_glInternalFormat[0] = HapTextureFormat_RGBA_DXT5;
+        m_glInputFormat[0] = HapTextureFormat_RGBA_DXT5;
         break;
     case MKTAG('H','a','p','Y'): // Hap Q
         outputBufferTextureFormats[0] = HapTextureFormat_YCoCg_DXT5;
-        m_glInternalFormat[0] = HapTextureFormat_RGBA_DXT5;
+        m_glInputFormat[0] = HapTextureFormat_RGBA_DXT5;
         break;
     case MKTAG('H','a','p','A'): // Hap Alpha Only
         outputBufferTextureFormats[0] = HapTextureFormat_A_RGTC1;
-        m_glInternalFormat[0] = HapTextureFormat_A_RGTC1;
+        m_glInputFormat[0] = HapTextureFormat_A_RGTC1;
         break;
     case MKTAG('H','a','p','M'):
         m_textureCount = 2;
         outputBufferTextureFormats[0] = HapTextureFormat_YCoCg_DXT5;
         outputBufferTextureFormats[1] = HapTextureFormat_A_RGTC1;
-        m_glInternalFormat[0] = HapTextureFormat_RGBA_DXT5;
-        m_glInternalFormat[1] = HapTextureFormat_A_RGTC1;
+        m_glInputFormat[0] = HapTextureFormat_RGBA_DXT5;
+        m_glInputFormat[1] = HapTextureFormat_A_RGTC1;
         break;
     default:
         assert(false);
@@ -71,16 +71,20 @@ HAPAvFormatOpenGLRenderer::HAPAvFormatOpenGLRenderer(AVCodecParameters* codecPar
 
     for (int textureId = 0; textureId < m_textureCount; textureId++) {
         unsigned int bitsPerPixel = 0;
+        bool alphaOnly;
         switch (outputBufferTextureFormats[textureId]) {
             case HapTextureFormat_RGB_DXT1:
                 bitsPerPixel = 4;
+                alphaOnly=false;
                 break;
             case HapTextureFormat_RGBA_DXT5:
             case HapTextureFormat_YCoCg_DXT5:
                 bitsPerPixel = 8;
+                alphaOnly=false;
                 break;
             case HapTextureFormat_A_RGTC1:
                 bitsPerPixel = 4;
+                alphaOnly=true;
                 break;
             default:
                 throw std::runtime_error("Invalid texture format");
@@ -106,7 +110,11 @@ HAPAvFormatOpenGLRenderer::HAPAvFormatOpenGLRenderer(AVCodecParameters* codecPar
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_STORAGE_HINT_APPLE , GL_STORAGE_SHARED_APPLE);
         #endif
 
-        glTexImage2D(GL_TEXTURE_2D, 0, m_glInternalFormat[textureId], m_codedWidth, m_codedHeight, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+        if (!alphaOnly) {
+            glTexImage2D(GL_TEXTURE_2D, 0, m_glInputFormat[textureId], m_codedWidth, m_codedHeight, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+        } else {
+            glTexImage2D(GL_TEXTURE_2D, 0, m_glInputFormat[textureId], m_codedWidth, m_codedHeight, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+        }
     }
 
     createShaderProgram(codecParams->codec_tag);
@@ -147,7 +155,7 @@ void HAPAvFormatOpenGLRenderer::renderFrame(AVPacket* packet, double msTime) {
             0,
             m_codedWidth,
             m_codedHeight,
-            m_glInternalFormat[textureId],
+            m_glInputFormat[textureId],
             static_cast<GLsizei>(m_outputBufferSize[textureId]),
             m_outputBuffers[textureId]);
     }
